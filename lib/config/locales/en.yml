@@ -94,7 +94,7 @@ en:
         invalid_set_polymorphic_relation:
           message: "The %{name} attribute can't be set to an instance of 
             %{other_klass} as %{other_klass} has multiple relations referencing
-            %{name} as %{name}."
+            %{klass} as %{name}."
           summary: ""
           resolution: ""
         mixed_relations:
