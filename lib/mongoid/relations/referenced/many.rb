@@ -547,7 +547,14 @@ module Mongoid #:nodoc:
           #
           # @since 2.1.0
           def criteria(metadata, object, type = nil)
-            metadata.klass.where(metadata.foreign_key => object)
+            criteria = metadata.klass.where(metadata.foreign_key => object)
+            
+            inverse_metadata = metadata.inverse_metadata(metadata.klass)
+            if inverse_metadata.inverse_of_field
+              criteria = criteria.any_in(inverse_metadata.inverse_of_field => [metadata.name, nil])
+            end
+
+            criteria
           end
 
           # Eager load the relation based on the criteria.
