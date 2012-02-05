@@ -21,20 +21,28 @@ module Mongoid # :nodoc:
           def bind
             unless _binding?
               _binding do
-                inverse = metadata.inverse(target)
+                inverses = metadata.inverses(target)
+                if inverses.count > 1 && base.send(metadata.foreign_key) == nil
+                  # Raise an error if we're setting this attribute to an object, but we don't know on which inverse.
+                  raise Errors::InvalidSetPolymorphicRelation.new(metadata.name, base.class.name, target.class.name)
+                end
+                
                 base.you_must(metadata.foreign_key_setter, target.id)
                 if metadata.inverse_type
                   base.you_must(metadata.inverse_type_setter, target.class.model_name)
                 end
-                if inverse
-                  inverse_metadata = metadata.inverse_metadata(target)
-                  if inverse_metadata != metadata && !inverse_metadata.nil?
-                    base.metadata = inverse_metadata
-                    if base.referenced_many?
-                      target.send(inverse).push(base) unless Mongoid.identity_map_enabled?
-                    else
-                      target.do_or_do_not(metadata.inverse_setter(target), base)
-                    end
+                
+                inverse_metadata = metadata.inverse_metadata(target)
+                if inverse_metadata != metadata && !inverse_metadata.nil?
+                  if metadata.inverse_of_field
+                    base.you_must(metadata.inverse_of_field_setter, inverse_metadata.name)
+                  end
+                  
+                  base.metadata = inverse_metadata
+                  if base.referenced_many?
+                    target.send(metadata.inverse(target)).push(base) unless Mongoid.identity_map_enabled?
+                  else
+                    target.do_or_do_not(metadata.inverse_setter(target), base)
                   end
                 end
               end
@@ -54,15 +62,23 @@ module Mongoid # :nodoc:
             unless _binding?
               _binding do
                 inverse = metadata.inverse(target)
+                if !inverse && metadata.inverse_of_field
+                  inverse ||= base.send(metadata.inverse_of_field)
+                end
+                
                 base.you_must(metadata.foreign_key_setter, nil)
                 if metadata.inverse_type
                   base.you_must(metadata.inverse_type_setter, nil)
                 end
+                if metadata.inverse_of_field
+                  base.you_must(metadata.inverse_of_field_setter, nil)
+                end
+                
                 if inverse
                   if base.referenced_many?
                     target.send(inverse).delete(base)
                   else
-                    target.send(metadata.inverse_setter(target), nil)
+                    target.send("#{inverse}=", nil)
                   end
                 end
               end
