@@ -362,6 +362,21 @@ module Mongoid # :nodoc:
         "  setter:               #{setter},\n" <<
         "  versioned:            #{versioned? || "No"}>\n"
       end
+      
+      # Get the name of the inverse relations if they exists. If this is a
+      # polymorphic relation then just return the :as option that was defined.
+      #
+      # @example Get the names of the inverses.
+      #   metadata.inverses
+      #
+      # @param [ Document ] other The document to aid in the discovery.
+      #
+      # @return [ Array<Symbol> ] The inverse name.
+      def inverses(other = nil)
+        return [self[:inverse_of]] if has_key?(:inverse_of)
+        return self[:as] ? [self[:as]] : lookup_inverses(other) if polymorphic?
+        @inverse ||= [(cyclic? ? cyclic_inverse : inverse_relation)]
+      end
 
       # Get the name of the inverse relation if it exists. If this is a
       # polymorphic relation then just return the :as option that was defined.
@@ -375,9 +390,9 @@ module Mongoid # :nodoc:
       #
       # @since 2.0.0.rc.1
       def inverse(other = nil)
-        return self[:inverse_of] if has_key?(:inverse_of)
-        return self[:as] || lookup_inverse(other) if polymorphic?
-        @inverse ||= (cyclic? ? cyclic_inverse : inverse_relation)
+        invs = inverses(other)
+        return nil unless invs.count == 1
+        invs.first
       end
 
       # Returns the inverse_class_name option of the relation.
@@ -925,6 +940,22 @@ module Mongoid # :nodoc:
       # actual instance on the other side, since we cannot know the exact class
       # name to infer it from at load time.
       #
+      # @example Find the inverses.
+      #   metadata.lookup_inverses(other)
+      #
+      # @param [ Document ] : The inverse document.
+      #
+      # @return [ Array<String> ] The inverse names.
+      def lookup_inverses(other)
+        return nil unless other
+        matching_metas = other.class.relations.find_all { |key, meta| meta.as == name }
+        return matching_metas.map { |meta| meta[1].name }
+      end
+      
+      # For polymorphic children, we need to figure out the inverse from the
+      # actual instance on the other side, since we cannot know the exact class
+      # name to infer it from at load time.
+      #
       # @example Find the inverse.
       #   metadata.lookup_inverse(other)
       #
@@ -934,10 +965,9 @@ module Mongoid # :nodoc:
       #
       # @since 2.0.0.rc.1
       def lookup_inverse(other)
-        return nil unless other
-        matching_metas = other.class.relations.find_all { |key, meta| meta.as == name }
-        return nil unless matching_metas.count == 1
-        matching_metas.first[1].name
+        return nil unless invs = lookup_inverses(other)
+        return nil unless invs.count == 1
+        invs.first
       end
     end
   end
