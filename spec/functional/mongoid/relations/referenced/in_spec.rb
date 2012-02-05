@@ -311,7 +311,7 @@ describe Mongoid::Relations::Referenced::In do
           
           it "raises an error" do
             expect {
-              eye.eyable = face
+              eye.eyeable = face
             }.to raise_error(Mongoid::Errors::InvalidSetPolymorphicRelation)
           end
         end
