@@ -24,6 +24,9 @@ module Mongoid # :nodoc:
                   doc.you_must(metadata.type_setter, base.class.model_name)
                 end
                 doc.send(metadata.inverse_setter, base)
+                if inverse_metadata = metadata.inverse_metadata(doc)
+                  doc.do_or_do_not(inverse_metadata.inverse_of_field_setter, metadata.name)
+                end
               end
             end
           end
@@ -44,6 +47,9 @@ module Mongoid # :nodoc:
                   doc.you_must(metadata.type_setter, nil)
                 end
                 doc.send(metadata.inverse_setter, nil)
+                if inverse_metadata = metadata.inverse_metadata(doc)
+                  doc.do_or_do_not(inverse_metadata.inverse_of_field_setter, nil)
+                end
               end
             end
           end
