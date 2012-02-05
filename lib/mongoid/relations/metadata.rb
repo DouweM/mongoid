@@ -508,6 +508,30 @@ module Mongoid # :nodoc:
       def inverse_type_setter
         @inverse_type_setter ||= inverse_type ? "#{inverse_type}=" : nil
       end
+      
+      # Returns the name of the field in which to store the name of the inverse 
+      # field for the polymorphic relation.
+      #
+      # @example Get the name of the field.
+      #   metadata.inverse_of_field
+      #
+      # @return [ String ] The name of the field for storing the name of the 
+      # inverse field.
+      def inverse_of_field
+        @inverse_of_field ||=
+          relation.stores_foreign_key? && polymorphic? ? "#{name}_field" : nil
+      end
+
+      # Gets the setter for the field that stores the name of the inverse field
+      # on a polymorphic relation.
+      #
+      # @example Get the inverse type setter.
+      #   metadata.inverse_of_field_setter
+      #
+      # @return [ String ] The name of the setter.
+      def inverse_of_field_setter
+        @inverse_of_field_setter ||= inverse_of_field ? "#{inverse_of_field}=" : nil
+      end
 
       # This returns the key that is to be used to grab the attributes for the
       # relation or the foreign key or id that a referenced relation will use
