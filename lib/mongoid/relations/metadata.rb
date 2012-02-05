@@ -479,7 +479,8 @@ module Mongoid # :nodoc:
       #
       # @since 2.0.0.rc.1
       def inverse_setter(other = nil)
-        "#{inverse(other)}="
+        inv = inverse(other)
+        inv ? "#{inv}=" : nil
       end
 
       # Returns the name of the field in which to store the name of the class
@@ -934,9 +935,9 @@ module Mongoid # :nodoc:
       # @since 2.0.0.rc.1
       def lookup_inverse(other)
         return nil unless other
-        other.class.relations.each_pair do |key, meta|
-          return meta.name if meta.as == name
-        end
+        matching_metas = other.class.relations.find_all { |key, meta| meta.as == name }
+        return nil unless matching_metas.count == 1
+        matching_metas.first[1].name
       end
     end
   end
