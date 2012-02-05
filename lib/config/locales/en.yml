@@ -91,6 +91,12 @@ en:
             value that differs from the defined type, like Array, instead of
             attempting to convert it."
           resolution: "Set the proper type, %{klass}."
+        invalid_set_polymorphic_relation:
+          message: "The %{name} attribute can't be set to an instance of 
+            %{other_klass} as %{other_klass} has multiple relations referencing
+            %{name} as %{name}."
+          summary: ""
+          resolution: ""
         mixed_relations:
           message: "Referencing a(n) %{embedded} document from the %{root}
             document via a relational association is not allowed since the
