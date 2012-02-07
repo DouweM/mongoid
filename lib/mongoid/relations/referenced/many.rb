@@ -550,7 +550,7 @@ module Mongoid #:nodoc:
             criteria = metadata.klass.where(metadata.foreign_key => object)
             
             inverse_metadata = metadata.inverse_metadata(metadata.klass)
-            if inverse_metadata.inverse_of_field
+            if inverse_metadata && inverse_metadata.inverse_of_field
               criteria = criteria.any_in(inverse_metadata.inverse_of_field => [metadata.name, nil])
             end
 
