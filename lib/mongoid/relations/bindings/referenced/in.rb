@@ -63,7 +63,7 @@ module Mongoid # :nodoc:
               _binding do
                 inverse = metadata.inverse(target)
                 if !inverse && metadata.inverse_of_field
-                  inverse ||= base.send(metadata.inverse_of_field)
+                  inverse = base.send(metadata.inverse_of_field)
                 end
                 
                 base.you_must(metadata.foreign_key_setter, nil)
