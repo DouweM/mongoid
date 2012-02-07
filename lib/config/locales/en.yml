@@ -54,7 +54,7 @@ en:
           relation (%{document}) who's parent (%{base}) is not already saved."
         invalid_set_polymorphic_relation: "The %{name} attribute can't be set to an instance of 
           %{other_klass} as %{other_klass} has multiple relations referencing
-          %{name} as %{name}."
+          %{klass} as %{name}."
         mixed_relations:
           Referencing a(n) %{embedded} document from the %{root} document via a
           relational association is not allowed since the %{embedded} is embedded.
