@@ -26,23 +26,25 @@ module Mongoid # :nodoc:
                   # Raise an error if we're setting this attribute to an object, but we don't know on which inverse.
                   raise Errors::InvalidSetPolymorphicRelation.new(metadata.name, base.class.name, target.class.name)
                 end
+
+                inverse = metadata.inverse(target)
                 
                 base.you_must(metadata.foreign_key_setter, target.id)
                 if metadata.inverse_type
                   base.you_must(metadata.inverse_type_setter, target.class.model_name)
                 end
-                
-                inverse_metadata = metadata.inverse_metadata(target)
-                if inverse_metadata != metadata && !inverse_metadata.nil?
-                  if metadata.inverse_of_field
-                    base.you_must(metadata.inverse_of_field_setter, inverse_metadata.name)
-                  end
-                  
-                  base.metadata = inverse_metadata
-                  if base.referenced_many?
-                    target.send(metadata.inverse(target)).push(base) unless Mongoid.identity_map_enabled?
-                  else
-                    target.do_or_do_not(metadata.inverse_setter(target), base)
+
+                if inverse
+                  if set_base_metadata
+                    if metadata.inverse_of_field
+                      base.you_must(metadata.inverse_of_field_setter, base.metadata.name)
+                    end
+                    
+                    if base.referenced_many?
+                      target.send(inverse).push(base) unless Mongoid.identity_map_enabled?
+                    else
+                      target.do_or_do_not(metadata.inverse_setter(target), base)
+                    end
                   end
                 end
               end
@@ -75,6 +77,7 @@ module Mongoid # :nodoc:
                 end
                 
                 if inverse
+                  set_base_metadata
                   if base.referenced_many?
                     target.send(inverse).delete(base)
                   else
@@ -85,6 +88,27 @@ module Mongoid # :nodoc:
             end
           end
           alias :unbind_one :unbind
+
+          private
+
+          # Ensure that the metadata on the base is correct, for the cases
+          # where we have multiple belongs to definitions and were are setting
+          # different parents in memory in order.
+          #
+          # @api private
+          #
+          # @example Set the base metadata.
+          #   binding.set_base_metadata
+          #
+          # @return [ true, false ] If the metadata changed.
+          #
+          # @since 2.4.4
+          def set_base_metadata
+            inverse_metadata = metadata.inverse_metadata(target)
+            if inverse_metadata != metadata && !inverse_metadata.nil?
+              base.metadata = inverse_metadata
+            end
+          end
         end
       end
     end
