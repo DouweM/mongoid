@@ -79,7 +79,7 @@ describe Mongoid::Validations::PresenceValidator do
         end
 
         it "adds errors" do
-          product.errors[:name].should eq(["can't be blank"])
+          product.errors[:name].should eq(["can't be blank in en"])
         end
       end
 
@@ -90,7 +90,7 @@ describe Mongoid::Validations::PresenceValidator do
         end
 
         it "adds errors" do
-          product.errors[:name].should eq(["can't be blank"])
+          product.errors[:name].should eq(["can't be blank in en"])
         end
       end
 
@@ -105,7 +105,25 @@ describe Mongoid::Validations::PresenceValidator do
         end
 
         it "adds errors" do
-          product.errors[:name].should eq(["can't be blank"])
+          product.errors[:name].should eq(["can't be blank in de"])
+        end
+      end
+
+      context "when the value is empty for several language" do
+        before do
+          validator.validate_each(
+            product,
+            :name,
+            { "en" => "", "de" => "" }
+          )
+        end
+
+        it "adds en errors" do
+          product.errors[:name].should include("can't be blank in en")
+        end
+
+        it "adds de errors" do
+          product.errors[:name].should include("can't be blank in de")
         end
       end
     end

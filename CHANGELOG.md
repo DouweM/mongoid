@@ -3,7 +3,44 @@
 For instructions on upgrading to newer versions, visit
 [mongoid.org](http://mongoid.org/docs/upgrading.html).
 
-## 2.4.4 (branch: 2.4.0-stable)
+## 2.4.6 (branch: 2.4.0-stable)
+
+### Resolved Issues
+
+* \#1757 Ensure serialization converts any attribute types to the type
+  defined by the field.
+
+* \#1756 Serializable hash options should pass through to embedded docs.
+
+## 2.4.5
+
+### Resolved Issues
+
+* \#1751 Mongoid's logger now responds to level for Ruby logging API
+  compatibility.
+
+* \#1744/#1750 Sorting works now for localized fields in embedded documents
+  using the criteria API. (Hans Hasselberg)
+
+* \#1746 Presence validation now shows which locales were empty for
+  localized fields. (Cyril Mougel)
+
+* \#1727 Allow dot notation in embedded criteria to work on both embeds one
+  and embeds many. (Lyle Underwood)
+
+* \#1723 Initialize callbacks should cascade through children without needing
+  to determine if the child is changed.
+
+* \#1715 Serializable hashes are now consistent on inclusion of embedded
+  documents per or post save.
+
+* \#1713 Fixing === checks when comparing a class with an instance of a
+  subclass.
+
+* \#1495 Callbacks no longer get the 'super called outside of method` errors on
+  busted 1.8.7 rubies.
+
+## 2.4.4
 
 ### Resolved Issues
 

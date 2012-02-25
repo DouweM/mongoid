@@ -6,10 +6,77 @@ describe Mongoid::Serialization do
     Person.delete_all
   end
 
+  describe "#as_json" do
+
+    context "when the method is overridden" do
+
+      let(:person) do
+        Person.create
+      end
+
+      context "when the model has embedded documents" do
+
+        let!(:address) do
+          person.addresses.create(:street => "test")
+        end
+
+        let(:attributes) do
+          person.serializable_hash(:methods => :id, :except => :_id)
+        end
+
+        let(:address_attributes) do
+          attributes["addresses"].first
+        end
+
+        it "uses the overridden method" do
+          attributes["id"].should eq(person.id)
+        end
+
+        it "uses the overridden method on embedded documents" do
+          address_attributes["id"].should eq(address.id)
+        end
+      end
+    end
+  end
+
   describe "#serializable_hash" do
 
     let(:person) do
       Person.new
+    end
+
+    context "when the model has embedded documents" do
+
+      let!(:address) do
+        person.addresses.build(:street => "test")
+      end
+
+      let(:attributes) do
+        person.serializable_hash
+      end
+
+      it "includes the embedded documents" do
+        attributes["addresses"].first.should eq(address.serializable_hash)
+      end
+    end
+
+    context "when the model has attributes that need conversion" do
+
+      let(:date) do
+        Date.new(1970, 1, 1)
+      end
+
+      before do
+        person.dob = date
+      end
+
+      let(:attributes) do
+        person.serializable_hash
+      end
+
+      it "converts the objects to the defined type" do
+        attributes["dob"].should eq(date)
+      end
     end
 
     context "when a model has defined fields" do
@@ -95,6 +162,84 @@ describe Mongoid::Serialization do
 
         it "excludes the specified fields" do
           person.serializable_hash(:except => [dynamic_field_name]).should_not include(dynamic_field_name => dynamic_value)
+        end
+      end
+    end
+
+    context "when a model has relations" do
+      let(:attributes) do
+        { "title" => "President", "security_code" => "1234" }
+      end
+
+      before do
+        person.write_attributes(attributes, false)
+      end
+
+      context "when the model is saved before the relation is added" do
+
+        before do
+          person.save
+        end
+
+        context "when a model has an embeds many" do
+
+          let!(:address_one) do
+            person.addresses.build(:street => "Kudamm")
+          end
+
+          before do
+            person.save
+          end
+
+          it "includes the relation" do
+            person.serializable_hash.keys.should include('addresses')
+          end
+        end
+
+        context "when a model has an embeds one" do
+          let!(:name) do
+            person.build_name(:first_name => "Leo", :last_name => "Marvin")
+          end
+
+          before do
+            person.save
+          end
+
+          it "includes the relation" do
+            person.serializable_hash.keys.should include('name')
+          end
+        end
+      end
+
+      context "when the model is saved after the relation is added" do
+
+        context "when a model has an embeds many" do
+
+          let!(:address_one) do
+            person.addresses.build(:street => "Kudamm")
+          end
+
+          before do
+            person.save
+          end
+
+          it "includes the relation" do
+            person.serializable_hash.keys.should include('addresses')
+          end
+        end
+
+        context "when a model has an embeds one" do
+          let!(:name) do
+            person.build_name(:first_name => "Leo", :last_name => "Marvin")
+          end
+
+          before do
+            person.save
+          end
+
+          it "includes the relation" do
+            person.serializable_hash.keys.should include('name')
+          end
         end
       end
     end
