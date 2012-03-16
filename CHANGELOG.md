@@ -3,9 +3,28 @@
 For instructions on upgrading to newer versions, visit
 [mongoid.org](http://mongoid.org/docs/upgrading.html).
 
-## 2.4.6 (branch: 2.4.0-stable)
+## 2.4.7 (branch: 2.4.0-stable)
 
 ### Resolved Issues
+
+* \#1814 Don't cascade callbacks on after_initialize.
+
+* \#1800 Invalid options for the Mongo connection are now filtered out.
+
+* \#1785 Case equality has been fixed to handle instance checks properly.
+
+## 2.4.6
+
+### Resolved Issues
+
+* \#1772 Allow skip and limit to convert strings to integers. (Jean Boussier)
+
+* \#1767 Model#update_attributes accepts mass assignment options again.
+  (Hans Hasselberg)
+
+* \#1762 Criteria#any_of now properly handles localized fields.
+
+* \#1758 Metadata now returns self on options for external library support.
 
 * \#1757 Ensure serialization converts any attribute types to the type
   defined by the field.

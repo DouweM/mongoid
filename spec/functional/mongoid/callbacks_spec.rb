@@ -8,6 +8,31 @@ describe Mongoid::Callbacks do
 
   context "when cascading callbacks" do
 
+    context "when cascading after initialize" do
+
+      let!(:person) do
+        Person.create
+      end
+
+      before do
+        person.services.create!(:sid => 1)
+      end
+
+      it "only executes the cascading callbacks once" do
+        Service.any_instance.expects(:after_initialize_called=).once
+        Person.find(person.id).should eq(person)
+      end
+    end
+
+    context "when attempting to cascade on a referenced relation" do
+
+      it "raises an error" do
+        expect {
+          Band.has_and_belongs_to_many :tags, :cascade_callbacks => true
+        }.to raise_error(Mongoid::Errors::InvalidOptions)
+      end
+    end
+
     context "when the documents are embedded one level" do
 
       describe "#after_create" do
