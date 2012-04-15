@@ -3,9 +3,53 @@
 For instructions on upgrading to newer versions, visit
 [mongoid.org](http://mongoid.org/docs/upgrading.html).
 
-## 2.4.7 (branch: 2.4.0-stable)
+## 2.4.9 (branch: 2.4.0-stable)
 
 ### Resolved Issues
+
+* \#1916/\#1913 Uniqueness validation no longer is affected by the default
+  scope. (Hans Hasselberg)
+
+## 2.4.8
+
+### Resolved Issues
+
+* \#1892 When getting not master operation error, Mongoid should reconnect
+  before retrying the operation.
+
+* \#1887 Don't cascade callbacks to children that don't have the callback
+  defined.
+
+* \#1882 Don't expand duplicate id criterion into an $and with duplicate
+  selections.
+
+* \#1878 Fixed default application values not to apply in certain `only`
+  or `without` selection on iteration, not just `first` and `last`.
+
+* \#1874 Fixed the reject all blank proc constant to handle values
+  properly with a destroy non blank value. (Stefan Daschek)
+
+* \#1869/\#1868 Delayed atomic sets now uses the atomic path instead of
+  the metadata name to fix multiple level embedding issues.
+  (Chris Micacchi provided specs)
+
+* \#1866 Post processed defaults (procs) should be applied post binding
+  of the child in a relation.build.
+
+## 2.4.7
+
+### Resolved Issues
+
+* Ensure reloading of embedded documents retains reference to the parent.
+
+* \#1837 Always pass symbol options to the driver.
+
+* \#1836 Ensure relation counts pick up persisted document that have not
+  had the foreign key link persisted.
+
+* \#1820 Destroying embedded documents in an embeds_many should also
+  removed the document from the underlying _uncoped target and reindex
+  the relation.
 
 * \#1814 Don't cascade callbacks on after_initialize.
 

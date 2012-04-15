@@ -28,6 +28,22 @@ module Mongoid # :nodoc:
         end
         alias :push :<<
 
+        # Get this relation as as its representation in the database.
+        #
+        # @example Convert the relation to an attributes hash.
+        #   person.addresses.as_document
+        #
+        # @return [ Array<Hash> ] The relation as stored in the db.
+        #
+        # @since 2.0.0.rc.1
+        def as_document
+          [].tap do |attributes|
+            _unscoped.each do |doc|
+              attributes.push(doc.as_document)
+            end
+          end
+        end
+
         # Appends an array of documents to the relation. Performs a batch
         # insert of the documents instead of persisting one at a time.
         #
@@ -78,6 +94,7 @@ module Mongoid # :nodoc:
           Factory.build(type || metadata.klass, attributes, options).tap do |doc|
             doc.identify
             append(doc)
+            doc.apply_proc_defaults
             yield(doc) if block_given?
             doc.run_callbacks(:build) { doc }
           end
@@ -295,31 +312,16 @@ module Mongoid # :nodoc:
                 docs = replacement.compact
                 proxy.target = docs
                 self._unscoped = docs.dup
-                if _assigning?
-                  base.delayed_atomic_sets[metadata.name.to_s] = proxy.as_document
-                end
                 proxy.target.each_with_index do |doc, index|
                   integrate(doc)
                   doc._index = index
                   doc.save if base.persisted? && !_assigning?
                 end
+                if _assigning?
+                  name = proxy.first.atomic_path
+                  base.delayed_atomic_sets[name] = proxy.as_document
+                end
               end
-            end
-          end
-        end
-
-        # Get this relation as as its representation in the database.
-        #
-        # @example Convert the relation to an attributes hash.
-        #   person.addresses.as_document
-        #
-        # @return [ Array<Hash> ] The relation as stored in the db.
-        #
-        # @since 2.0.0.rc.1
-        def as_document
-          [].tap do |attributes|
-            _unscoped.each do |doc|
-              attributes.push(doc.as_document)
             end
           end
         end
@@ -382,6 +384,22 @@ module Mongoid # :nodoc:
           klass.criteria(true).tap do |criterion|
             criterion.documents = target
           end
+        end
+
+        # Deletes one document from the target and unscoped.
+        #
+        # @api private
+        #
+        # @example Delete one document.
+        #   relation.delete_one(doc)
+        #
+        # @param [ Document ] document The document to delete.
+        #
+        # @since 2.4.7
+        def delete_one(document)
+          target.delete_one(document)
+          _unscoped.delete_one(document)
+          reindex
         end
 
         # Integrate the document into the relation. will set its metadata and
