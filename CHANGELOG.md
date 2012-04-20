@@ -7,6 +7,19 @@ For instructions on upgrading to newer versions, visit
 
 ### Resolved Issues
 
+* \#1933 `Proxy#extend` should delegate through to the target, where
+  extending the proxy itself is now handled through `Proxy#proxy_extend`.
+
+* \#1930 Ensure complex criteria are expanded in all where clauses.
+  (Hans Hasselberg)
+
+* \#1924/\#1917 Fix pushing to embedded relations with default scopes not
+  scoping on the new document. (Hans Hasselberg)
+
+* \#1922/\#1919 Dropping collections unmemoizes the internally wrapped
+  collection, in order to ensure when defining capped collections that
+  they are always recreated as capped. (Hans Hasselberg)
+
 * \#1916/\#1913 Uniqueness validation no longer is affected by the default
   scope. (Hans Hasselberg)
 
