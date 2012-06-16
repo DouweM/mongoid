@@ -45,6 +45,36 @@ describe Mongoid::Serialization do
       Person.new
     end
 
+    context "when a dynamic attribute has the same name as a ruby method" do
+
+      before do
+        person[:loop] = "testing"
+      end
+
+      let(:attributes) do
+        person.serializable_hash
+      end
+
+      it "grabs the attribute direct from the hash" do
+        attributes["loop"].should eq("testing")
+      end
+    end
+
+    context "when the method for a declared field is overridden" do
+
+      before do
+        person.override_me = 1
+      end
+
+      let(:attributes) do
+        person.serializable_hash
+      end
+
+      it "uses the overridden method" do
+        attributes["override_me"].should eq("1")
+      end
+    end
+
     context "when the model has embedded documents" do
 
       let!(:address) do

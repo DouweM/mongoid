@@ -4,6 +4,21 @@ module Mongoid #:nodoc:
   # Defines behaviour for the identity map in Mongoid.
   class IdentityMap < Hash
 
+    # Clear the many documents.
+    #
+    # @example Clear the docs.
+    #   identity_map.clear_many(Post, selector)
+    #
+    # @param [ Class ] klass The klass to clear.
+    # @param [ Hash ] selector The selector to identify it.
+    #
+    # @return [ Array<Document> ] The documents.
+    #
+    # @since 2.4.10
+    def clear_many(klass, selector)
+      (documents_for(klass)[selector] ||= []).clear
+    end
+
     # Get a document from the identity map by its id.
     #
     # @example Get the document from the map.

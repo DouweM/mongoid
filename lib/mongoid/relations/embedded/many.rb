@@ -189,8 +189,12 @@ module Mongoid # :nodoc:
           target.delete_one(document).tap do |doc|
             _unscoped.delete_one(doc)
             if doc && !_binding?
-              if _assigning? && !doc.paranoid?
-                base.add_atomic_pull(doc)
+              if _assigning?
+                if doc.paranoid?
+                  doc.destroy(:suppress => true)
+                else
+                  base.add_atomic_pull(doc)
+                end
               else
                 doc.delete(:suppress => true)
               end
@@ -307,7 +311,11 @@ module Mongoid # :nodoc:
               atomically(:$set) do
                 base.delayed_atomic_sets.clear
                 if replacement.first.is_a?(Hash)
-                  replacement = Many.builder(base, metadata, replacement).build
+                  replacement = replacement.map do |doc|
+                    attributes = { :metadata => metadata, :_parent => base }
+                    attributes.merge!(doc)
+                    Factory.build(klass, attributes)
+                  end
                 end
                 docs = replacement.compact
                 proxy.target = docs
@@ -319,6 +327,10 @@ module Mongoid # :nodoc:
                 end
                 if _assigning?
                   name = _unscoped.first.atomic_path
+                  base._children.each do |child|
+                    child.delayed_atomic_sets.clear
+                  end
+                  base.instance_variable_set(:@_children, nil)
                   base.delayed_atomic_sets[name] = proxy.as_document
                 end
               end

@@ -1,8 +1,10 @@
 # encoding: utf-8
+require "mongoid/validations/localizable"
 require "mongoid/validations/associated"
 require "mongoid/validations/format"
-require "mongoid/validations/uniqueness"
+require "mongoid/validations/length"
 require "mongoid/validations/presence"
+require "mongoid/validations/uniqueness"
 
 module Mongoid #:nodoc:
 
@@ -46,7 +48,7 @@ module Mongoid #:nodoc:
     # @since 2.0.0.rc.1
     def read_attribute_for_validation(attr)
       attribute = attr.to_s
-      if relations[attribute]
+      if relations.has_key?(attribute)
         begin_validate
         relation = send(attr)
         exit_validate
@@ -137,6 +139,40 @@ module Mongoid #:nodoc:
       # @param [ Array ] *args The arguments to pass to the validator.
       def validates_uniqueness_of(*args)
         validates_with(UniquenessValidator, _merge_attributes(args))
+      end
+
+      # Validates the format of a field.
+      #
+      # @example
+      #   class Person
+      #     include Mongoid::Document
+      #     field :title
+      #
+      #     validates_format_of :title, with: /^[a-z0-9 \-_]*$/i
+      #   end
+      #
+      # @param [ Array ] args The names of the fields to validate.
+      #
+      # @since 2.4.0
+      def validates_format_of(*args)
+        validates_with(Mongoid::Validations::FormatValidator, _merge_attributes(args))
+      end
+
+      # Validates the length of a field.
+      #
+      # @example
+      #   class Person
+      #     include Mongoid::Document
+      #     field :title
+      #
+      #     validates_length_of :title, minimum: 100
+      #   end
+      #
+      # @param [ Array ] args The names of the fields to validate.
+      #
+      # @since 2.4.0
+      def validates_length_of(*args)
+        validates_with(Mongoid::Validations::LengthValidator, _merge_attributes(args))
       end
 
       # Validates whether or not a field is present - meaning nil or empty.

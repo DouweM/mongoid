@@ -1149,6 +1149,86 @@ describe Mongoid::NestedAttributes do
 
               context "when allow_destroy is true" do
 
+                context "when the child has defaults" do
+
+                  before(:all) do
+                    Person.accepts_nested_attributes_for :appointments, :allow_destroy => true
+                  end
+
+                  after(:all) do
+                    Person.send(:undef_method, :appointments_attributes=)
+                  end
+
+                  context "when the parent is persisted" do
+
+                    let!(:persisted) do
+                      Person.create(:age => 42)
+                    end
+
+                    context "when the child returns false in a before callback" do
+
+                      before(:all) do
+                        Person.accepts_nested_attributes_for :paranoid_phones, :allow_destroy => true
+                      end
+
+                      after(:all) do
+                        Person.send(:undef_method, :paranoid_phones=)
+                        Person.accepts_nested_attributes_for :paranoid_phones
+                      end
+
+                      let!(:phone) do
+                        persisted.paranoid_phones.create
+                      end
+
+                      before do
+                        persisted.paranoid_phones_attributes =
+                          { "foo" => { "id" => phone.id, "number" => 42, "_destroy" => true }}
+                      end
+
+                      it "does not destroy the child" do
+                        persisted.reload.paranoid_phones.should_not be_empty
+                      end
+                    end
+
+                    context "when only 1 child has the default persisted" do
+
+                      let!(:app_one) do
+                        persisted.appointments.create
+                      end
+
+                      let!(:app_two) do
+                        persisted.appointments.create.tap do |app|
+                          app.unset(:timed)
+                        end
+                      end
+
+                      context "when destroying both children" do
+
+                        let(:from_db) do
+                          Person.find(persisted.id)
+                        end
+
+                        before do
+                          from_db.appointments_attributes =
+                            {
+                              "bar" => { "id" => app_one.id, "_destroy" => true },
+                              "foo" => { "id" => app_two.id, "_destroy" => true }
+                            }
+                          from_db.save
+                        end
+
+                        it "destroys both children" do
+                          from_db.appointments.should be_empty
+                        end
+
+                        it "persists the deletes" do
+                          from_db.reload.appointments.should be_empty
+                        end
+                      end
+                    end
+                  end
+                end
+
                 context "when the child is not paranoid" do
 
                   before(:all) do
@@ -3986,35 +4066,76 @@ describe Mongoid::NestedAttributes do
 
       context "when second level is a one to many" do
 
-        let(:attributes) do
-          { :addresses_attributes =>
-            { "0" =>
-              {
-                :street => "Alexanderstr",
-                :locations_attributes => { "0" => { :name => "Home" } }
+        context "when adding new documents in both levels" do
+
+          context "when no documents has previously existed" do
+
+            let(:attributes) do
+              { :addresses_attributes =>
+                { "0" =>
+                  {
+                    :street => "Alexanderstr",
+                    :locations_attributes => { "0" => { :name => "Home" } }
+                  }
+                }
               }
-            }
-          }
-        end
+            end
 
-        before do
-          person.safely.update_attributes(attributes)
-        end
+            before do
+              person.safely.update_attributes(attributes)
+            end
 
-        let(:address) do
-          person.addresses.first
-        end
+            let(:address) do
+              person.addresses.first
+            end
 
-        let(:location) do
-          address.locations.first
-        end
+            let(:location) do
+              address.locations.first
+            end
 
-        it "adds the new first level embedded document" do
-          address.street.should eq("Alexanderstr")
-        end
+            it "adds the new first level embedded document" do
+              address.street.should eq("Alexanderstr")
+            end
 
-        it "adds the nested embedded document" do
-          location.name.should eq("Home")
+            it "adds the nested embedded document" do
+              location.name.should eq("Home")
+            end
+          end
+
+          context "when adding to an existing document in the first level" do
+
+            let!(:address) do
+              person.addresses.create(:street => "hobrecht")
+            end
+
+            let!(:location) do
+              address.locations.create(:name => "work")
+            end
+
+            let(:attributes) do
+              {
+                :addresses_attributes => {
+                  :a => {
+                    :id => address.id, :locations_attributes => { :b => { :name => "home" }}
+                  },
+                  :c => { :street => "pfluger" }
+                }
+              }
+            end
+
+            before do
+              person.safely.update_attributes(attributes)
+              person.reload
+            end
+
+            it "adds the new location to the existing address" do
+              person.addresses.first.locations.count.should eq(2)
+            end
+
+            it "adds the new address" do
+              person.addresses.count.should eq(2)
+            end
+          end
         end
       end
 

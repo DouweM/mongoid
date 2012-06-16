@@ -3,15 +3,75 @@
 For instructions on upgrading to newer versions, visit
 [mongoid.org](http://mongoid.org/docs/upgrading.html).
 
-## 2.4.9 (branch: 2.4.0-stable)
+## 2.4.11 (branch: 2.4.0-stable)
 
 ### Resolved Issues
+
+* This release forces a cap on the mongo driver version at 1.6.2 due to
+  changes in the `Mongo::Connection.from_uri` API not allowing valid
+  connection options anymore.
+
+* \#2040 Fixed bad interpolation for locale presence validation.
+
+* \#2038 Allow inverse relations to be determined by foreign keys alone
+  if defined on both sides, not just an inverse_of declaration.
+
+* \#2023 Allow serilialization of dynamic types that conflict with core
+  Ruby methods to still be serialized.
+
+* \#2008 Presence validation should hit the db to check validity if the
+  relation in memory is blank.
+
+* \#2006 Allow excluding only the _id field post execution of an #only call.
+
+## 2.4.10
+
+### Resolved Issues
+
+* \#2003 Don't fail on document generation when an embedded document was
+  stored as nil in the database.
+
+* \#1997 Don't delete paranoid embedded docs via nested attributes when
+  a before_destroy callback returns false.
+
+* \#1994 `dependent: :delete` only hits the database once now for one to
+  many and many to many relations instead of once for each document.
+
+* \#1987 Don't double-insert documents into identity map when eager loading
+  twice inside the unit of work.
+
+* \#1976 Don't execute eager load queries when base query is empty.
+
+* \#1953 Uniqueness validation now works on localized fields.
+
+* \#1936 Allow setting n levels deep embedded documents atomically without
+  conflicting mods when not using nested attributes or documents themselves
+  in an update call from the parent.
+
+* \#1957/\#1954 Ensure database name is set with inheritance.
+  (Hans Hasselberg)
+
+## 2.4.9
+
+### Resolved Issues
+
+* \#1943 Ensure numericality validation works for big decimals.
+
+* \#1938 Length validation now works with localized fields.
+
+* \#1936 Conflicting pushes with other pushes is now properly handled.
 
 * \#1933 `Proxy#extend` should delegate through to the target, where
   extending the proxy itself is now handled through `Proxy#proxy_extend`.
 
 * \#1930 Ensure complex criteria are expanded in all where clauses.
   (Hans Hasselberg)
+
+* \#1928 Deletion of embedded documents via nested attributes now performs
+  a $pull with id match criteria instead of a $pullAll to cover all cases.
+  Previously newly added defaults to documents that had already persisted
+  could not be deleted in this matter since the doc did not match what was
+  in the database.
 
 * \#1924/\#1917 Fix pushing to embedded relations with default scopes not
   scoping on the new document. (Hans Hasselberg)
@@ -22,6 +82,8 @@ For instructions on upgrading to newer versions, visit
 
 * \#1916/\#1913 Uniqueness validation no longer is affected by the default
   scope. (Hans Hasselberg)
+
+* \#1778 Ensure foreign keys are always set regardless of binding state.
 
 ## 2.4.8
 

@@ -27,6 +27,7 @@ class Person
   field :security_code
   field :reading, :type => Object
   field :bson_id, :type => BSON::ObjectId
+  field :override_me, :type => Integer
 
   index :age
   index :addresses
@@ -107,6 +108,7 @@ class Person
   has_many :drugs, :autosave => true, :validate => false
   has_one :account, :autosave => true, :validate => false
   has_one :cat, :dependent => :nullify
+  has_one :home, :dependent => :delete, :validate => false
 
   has_and_belongs_to_many \
     :administrated_events,
@@ -144,6 +146,10 @@ class Person
 
   def savable?
     self.mode != :prevent_save
+  end
+
+  def override_me
+    read_attribute(:override_me).to_s
   end
 
   class << self

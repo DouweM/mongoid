@@ -134,6 +134,29 @@ describe Mongoid::Validations::UniquenessValidator do
       end
     end
 
+    context "when using paranoia" do
+      before do
+        Dictionary.class_eval do
+          include Mongoid::Paranoia
+          validates_uniqueness_of :name
+        end
+      end
+
+      context "when the document is unique in not deleted" do
+        before do
+          Dictionary.create(:name => "Oxford").destroy
+        end
+
+        let(:dictionary) do
+          Dictionary.new(:name => "Oxford")
+        end
+
+        it "returns true" do
+          dictionary.should be_valid
+        end
+      end
+    end
+
     context "when the document is embedded" do
 
       let(:word) do
@@ -159,7 +182,8 @@ describe Mongoid::Validations::UniquenessValidator do
         end
 
         before do
-          word.definitions.expects(:where).with(
+          word.definitions.expects(:unscoped).returns(criteria)
+          criteria.expects(:where).with(
             :description => "Testy"
           ).returns(criteria)
           criteria.expects(:count).returns(2)
@@ -178,7 +202,8 @@ describe Mongoid::Validations::UniquenessValidator do
         end
 
         before do
-          word.definitions.expects(:where).with(
+          word.definitions.expects(:unscoped).returns(criteria)
+          criteria.expects(:where).with(
             :description => "Testy"
           ).returns(criteria)
           criteria.expects(:count).returns(2)
@@ -197,7 +222,8 @@ describe Mongoid::Validations::UniquenessValidator do
         end
 
         before do
-          word.definitions.expects(:where).with(
+          word.definitions.expects(:unscoped).returns(criteria)
+          criteria.expects(:where).with(
             :description => /^Testy$/i
           ).returns(criteria)
           criteria.expects(:count).returns(2)
@@ -216,7 +242,8 @@ describe Mongoid::Validations::UniquenessValidator do
         end
 
         before do
-          word.definitions.expects(:where).with(
+          word.definitions.expects(:unscoped).returns(criteria)
+          criteria.expects(:where).with(
             :description => "Testy"
           ).returns(criteria)
           criteria.expects(:where).with(:part => definition.part).returns(criteria)

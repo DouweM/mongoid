@@ -160,15 +160,18 @@ module Mongoid #:nodoc:
     #
     # @since 2.2.0
     def atomic_pulls
-      delayed_atomic_pulls.inject({}) do |pulls, (name, docs)|
-        pulls.tap do |pull|
-          docs.each do |doc|
-            (pull[doc.atomic_path] ||= []).push(doc.as_document)
-            doc.destroyed = true
-            doc.flagged_for_destroy = false
-          end
+      pulls = {}
+      delayed_atomic_pulls.each_pair do |_, docs|
+        path = nil
+        ids = docs.map do |doc|
+          path ||= doc.atomic_path
+          doc.destroyed = true
+          doc.flagged_for_destroy = false
+          doc.id
         end
+        pulls[path] = { "_id" => { "$in" => ids }} and path = nil
       end
+      pulls
     end
 
     # Get all the push attributes that need to occur.
@@ -249,6 +252,9 @@ module Mongoid #:nodoc:
     # @example Get the atomic paths.
     #   document.atomic_paths
     #
+    # @todo: Durran: Should probably raise error for embedded docs w/o
+    #   metadata.
+    #
     # @return [ Object ] The associated path.
     #
     # @since 2.1.0
@@ -273,7 +279,7 @@ module Mongoid #:nodoc:
       mods.push(doc.atomic_pushes)
       mods.push(doc.atomic_array_pushes)
       mods.add_to_set(doc.atomic_array_add_to_sets)
-      mods.pull(doc.atomic_array_pulls)
+      mods.pull_all(doc.atomic_array_pulls)
     end
   end
 end

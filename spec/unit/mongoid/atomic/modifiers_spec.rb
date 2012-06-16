@@ -79,11 +79,67 @@ describe Mongoid::Atomic::Modifiers do
       context "when adding a single pull" do
 
         let(:pulls) do
-          { "addresses" => [{ "_id" => "one" }] }
+          { "addresses" => { "_id" => { "$in" => [ "one" ]}} }
         end
 
         before do
           modifiers.pull(pulls)
+        end
+
+        it "adds the push all modifiers" do
+          modifiers.should eq(
+            { "$pull" => { "addresses" => { "_id" => { "$in" => [ "one" ]}}}}
+          )
+        end
+      end
+
+      context "when adding to an existing pull" do
+
+        let(:pull_one) do
+          { "addresses" => { "_id" => { "$in" => [ "one" ]}} }
+        end
+
+        let(:pull_two) do
+          { "addresses" => { "_id" => { "$in" => [ "two" ]}} }
+        end
+
+        before do
+          modifiers.pull(pull_one)
+          modifiers.pull(pull_two)
+        end
+
+        it "overwrites the previous pulls" do
+          modifiers.should eq(
+            { "$pull" => { "addresses" => { "_id" => { "$in" => [ "two" ]}}}}
+          )
+        end
+      end
+    end
+  end
+
+  describe "#pull_all" do
+
+    context "when the pulls are empty" do
+
+      before do
+        modifiers.pull_all({})
+      end
+
+      it "does not contain any pull operations" do
+        modifiers.should eq({})
+      end
+    end
+
+    context "when no conflicting modifications are present" do
+
+      context "when adding a single pull" do
+
+        let(:pulls) do
+          { "addresses" => [{ "_id" => "one" }] }
+        end
+
+        before do
+          modifiers.pull_all(pulls)
         end
 
         it "adds the push all modifiers" do
@@ -109,8 +165,8 @@ describe Mongoid::Atomic::Modifiers do
         end
 
         before do
-          modifiers.pull(pull_one)
-          modifiers.pull(pull_two)
+          modifiers.pull_all(pull_one)
+          modifiers.pull_all(pull_two)
         end
 
         it "adds the pull all modifiers" do
@@ -236,7 +292,7 @@ describe Mongoid::Atomic::Modifiers do
         end
 
         before do
-          modifiers.pull(pulls)
+          modifiers.pull_all(pulls)
           modifiers.push(pushes)
         end
 
@@ -244,6 +300,36 @@ describe Mongoid::Atomic::Modifiers do
           modifiers.should eq(
             { "$pullAll" => {
               "addresses" => { "street" => "Bond St" }},
+              :conflicts => { "$pushAll" =>
+                { "addresses" => [
+                    { "street" => "Oxford St" }
+                  ]
+                }
+              }
+            }
+          )
+        end
+      end
+
+      context "when the conflicting modification is a push" do
+
+        let(:nested) do
+          { "addresses.0.locations" => { "street" => "Bond St" } }
+        end
+
+        let(:pushes) do
+          { "addresses" => { "street" => "Oxford St" } }
+        end
+
+        before do
+          modifiers.push(nested)
+          modifiers.push(pushes)
+        end
+
+        it "adds the push all modifiers to the conflicts hash" do
+          modifiers.should eq(
+            { "$pushAll" => {
+              "addresses.0.locations" => [{ "street" => "Bond St" }]},
               :conflicts => { "$pushAll" =>
                 { "addresses" => [
                     { "street" => "Oxford St" }
@@ -316,7 +402,7 @@ describe Mongoid::Atomic::Modifiers do
         end
 
         before do
-          modifiers.pull(pulls)
+          modifiers.pull_all(pulls)
           modifiers.set(sets)
         end
 
