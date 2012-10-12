@@ -44,6 +44,20 @@ module Mongoid
       children
     end
 
+    # Marks all children as being persisted.
+    #
+    # @example Flag all the children.
+    #   document.flag_children_persisted
+    #
+    # @return [ Array<Document> ] The flagged children.
+    #
+    # @since 3.0.7
+    def flag_children_persisted
+      _children.each do |child|
+        child.new_record = false
+      end
+    end
+
     # Determines if the document is a subclass of another document.
     #
     # @example Check if the document is a subclass
@@ -141,6 +155,7 @@ module Mongoid
       # @since 2.0.0.rc.6
       def inherited(subclass)
         super
+        @_type = nil
         subclass.fields = fields.dup
         subclass.pre_processed_defaults = pre_processed_defaults.dup
         subclass.post_processed_defaults = post_processed_defaults.dup

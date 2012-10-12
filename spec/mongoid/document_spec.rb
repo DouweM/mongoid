@@ -220,6 +220,21 @@ describe Mongoid::Document do
         types.should eq([ "Address" ])
       end
     end
+
+    context "when ._types had been called before class declaration" do
+      let(:descendant) do
+        Class.new(Person)
+      end
+
+      before do
+        Person._types
+        descendant
+      end
+
+      it "should clear descendants' cache" do
+        Person._types.should include(descendant.to_s)
+      end
+    end
   end
 
   describe "#attributes" do
@@ -903,6 +918,18 @@ describe Mongoid::Document do
 
           it "copies the state" do
             became.should be_destroyed
+          end
+        end
+
+        context "when the document is dirty" do
+
+          before do
+            obj.save
+            obj.ssn = "123-22-1234"
+          end
+
+          it "copies over the dirty changes" do
+            became.changes["ssn"].should eq(obj.changes["ssn"])
           end
         end
 
