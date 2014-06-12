@@ -2,6 +2,10 @@ require "spec_helper"
 
 describe Mongoid::Relations::Referenced::In do
 
+  before(:all) do
+    Person.reset_callbacks(:validate)
+  end
+
   let(:person) do
     Person.create
   end
@@ -23,7 +27,7 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the target relation" do
-            service.target.should eq(target)
+            expect(service.target).to eq(target)
           end
         end
       end
@@ -44,11 +48,11 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "sets the relation" do
-        agent.game.should eq(game)
+        expect(agent.game).to eq(game)
       end
 
       it "sets the foreign_key" do
-        agent.game_id.should eq(game.id)
+        expect(agent.game_id).to eq(game.id)
       end
     end
 
@@ -71,15 +75,15 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "sets the relation" do
-        address.account.should eq(account)
+        expect(address.account).to eq(account)
       end
 
       it "does not erase the metadata" do
-        address.metadata.should_not be_nil
+        expect(address.metadata).to_not be_nil
       end
 
       it "allows saving of the embedded document" do
-        address.save.should be_true
+        expect(address.save).to be_true
       end
     end
 
@@ -102,23 +106,23 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the target of the relation" do
-            game.person.target.should eq(person)
+            expect(game.person.target).to eq(person)
           end
 
           it "sets the foreign key on the relation" do
-            game.person_id.should eq(person.id)
+            expect(game.person_id).to eq(person.id)
           end
 
           it "sets the base on the inverse relation" do
-            person.game.should eq(game)
+            expect(person.game).to eq(game)
           end
 
           it "sets the same instance on the inverse relation" do
-            person.game.should eql(game)
+            expect(person.game).to eql(game)
           end
 
           it "does not save the target" do
-            person.should_not be_persisted
+            expect(person).to_not be_persisted
           end
         end
 
@@ -137,28 +141,52 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the target of the relation" do
-            game.person.target.should eq(person)
+            expect(game.person.target).to eq(person)
           end
 
           it "sets the foreign key of the relation" do
-            game.person_id.should eq(person.id)
+            expect(game.person_id).to eq(person.id)
           end
 
           it "sets the base on the inverse relation" do
-            person.game.should eq(game)
+            expect(person.game).to eq(game)
           end
 
           it "sets the same instance on the inverse relation" do
-            person.game.should eql(game)
+            expect(person.game).to eql(game)
           end
 
           it "does not saves the target" do
-            person.should_not be_persisted
+            expect(person).to_not be_persisted
           end
         end
       end
 
-      context "when the relation is not polymorphic" do
+      context "when the relation is polymorphic" do
+
+        context "when the parent is a subclass" do
+
+          let(:canvas) do
+            Canvas::Test.create
+          end
+
+          let(:comment) do
+            Comment.create(title: "test")
+          end
+
+          before do
+            comment.commentable = canvas
+            comment.save
+          end
+
+          it "sets the correct value in the type field" do
+            expect(comment.commentable_type).to eq("Canvas::Test")
+          end
+
+          it "can retrieve the document from the database" do
+            expect(comment.reload.commentable).to eq(canvas)
+          end
+        end
 
         context "when the child is a new record" do
 
@@ -175,27 +203,23 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the target of the relation" do
-            rating.ratable.target.should eq(bar)
+            expect(rating.ratable.target).to eq(bar)
           end
 
           it "sets the foreign key on the relation" do
-            rating.ratable_id.should eq(bar.id)
-          end
-
-          it "does not set the inverse of field on the relation" do
-            rating.ratable_field.should be_nil
+            expect(rating.ratable_id).to eq(bar.id)
           end
 
           it "sets the base on the inverse relation" do
-            bar.rating.should eq(rating)
+            expect(bar.rating).to eq(rating)
           end
 
           it "sets the same instance on the inverse relation" do
-            bar.rating.should eql(rating)
+            expect(bar.rating).to eql(rating)
           end
 
           it "does not save the target" do
-            bar.should_not be_persisted
+            expect(bar).to_not be_persisted
           end
         end
 
@@ -214,27 +238,27 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the target of the relation" do
-            rating.ratable.target.should eq(bar)
+            expect(rating.ratable.target).to eq(bar)
           end
 
           it "sets the foreign key of the relation" do
-            rating.ratable_id.should eq(bar.id)
+            expect(rating.ratable_id).to eq(bar.id)
           end
 
           it "does not set the inverse of field on the relation" do
-            rating.ratable_field.should be_nil
+            expect(rating.ratable_field).to be_nil
           end
 
           it "sets the base on the inverse relation" do
-            bar.rating.should eq(rating)
+            expect(bar.rating).to eq(rating)
           end
 
           it "sets the same instance on the inverse relation" do
-            bar.rating.should eql(rating)
+            expect(bar.rating).to eql(rating)
           end
 
           it "does not saves the target" do
-            bar.should_not be_persisted
+            expect(bar).to_not be_persisted
           end
         end
       end
@@ -259,15 +283,15 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the target of the relation" do
-            post.person.target.should eq(person)
+            expect(post.person.target).to eq(person)
           end
 
           it "sets the foreign key on the relation" do
-            post.person_id.should eq(person.id)
+            expect(post.person_id).to eq(person.id)
           end
 
           it "does not save the target" do
-            person.should_not be_persisted
+            expect(person).to_not be_persisted
           end
         end
 
@@ -286,15 +310,15 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the target of the relation" do
-            post.person.target.should eq(person)
+            expect(post.person.target).to eq(person)
           end
 
           it "sets the foreign key of the relation" do
-            post.person_id.should eq(person.id)
+            expect(post.person_id).to eq(person.id)
           end
 
           it "does not saves the target" do
-            person.should_not be_persisted
+            expect(person).to_not be_persisted
           end
         end
       end
@@ -330,7 +354,7 @@ describe Mongoid::Relations::Referenced::In do
 
           it "should assign as expected" do
             eye.suspended_in = eye_bowl
-            eye.suspended_in.target.should eq(eye_bowl)
+            expect(eye.suspended_in.target).to eq(eye_bowl)
           end
         end
 
@@ -351,15 +375,15 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "sets the target of the relation" do
-              rating.ratable.target.should eq(movie)
+              expect(rating.ratable.target).to eq(movie)
             end
 
             it "sets the foreign key on the relation" do
-              rating.ratable_id.should eq(movie.id)
+              expect(rating.ratable_id).to eq(movie.id)
             end
 
             it "does not save the target" do
-              movie.should_not be_persisted
+              expect(movie).to_not be_persisted
             end
           end
 
@@ -378,15 +402,15 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "sets the target of the relation" do
-              rating.ratable.target.should eq(movie)
+              expect(rating.ratable.target).to eq(movie)
             end
 
             it "sets the foreign key of the relation" do
-              rating.ratable_id.should eq(movie.id)
+              expect(rating.ratable_id).to eq(movie.id)
             end
 
             it "does not saves the target" do
-              movie.should_not be_persisted
+              expect(movie).to_not be_persisted
             end
           end
         end
@@ -433,11 +457,11 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "deletes child" do
-              account.should be_destroyed
+              expect(account).to be_destroyed
             end
 
             it "deletes parent" do
-              person.should be_destroyed
+              expect(person).to be_destroyed
             end
           end
         end
@@ -466,11 +490,11 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "deletes child" do
-              drug.should be_destroyed
+              expect(drug).to be_destroyed
             end
 
             it "deletes parent" do
-              person.should be_destroyed
+              expect(person).to be_destroyed
             end
           end
         end
@@ -514,11 +538,11 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "deletes child" do
-              account.should be_destroyed
+              expect(account).to be_destroyed
             end
 
             it "deletes parent" do
-              person.should be_destroyed
+              expect(person).to be_destroyed
             end
           end
         end
@@ -547,11 +571,11 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "deletes child" do
-              drug.should be_destroyed
+              expect(drug).to be_destroyed
             end
 
             it "deletes parent" do
-              person.should be_destroyed
+              expect(person).to be_destroyed
             end
           end
         end
@@ -590,15 +614,15 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "deletes child" do
-              account.should be_destroyed
+              expect(account).to be_destroyed
             end
 
             it "doesn't delete parent" do
-              person.should_not be_destroyed
+              expect(person).to_not be_destroyed
             end
 
             it "removes the link" do
-              person.account.should be_nil
+              expect(person.account).to be_nil
             end
           end
         end
@@ -622,15 +646,15 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "deletes child" do
-              drug.should be_destroyed
+              expect(drug).to be_destroyed
             end
 
             it "doesn't deletes parent" do
-              person.should_not be_destroyed
+              expect(person).to_not be_destroyed
             end
 
             it "removes the link" do
-              person.drugs.should eq([])
+              expect(person.drugs).to eq([])
             end
           end
         end
@@ -653,11 +677,11 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "removes the relation" do
-        agent.game.should be_nil
+        expect(agent.game).to be_nil
       end
 
       it "removes the foreign_key" do
-        agent.game_id.should be_nil
+        expect(agent.game_id).to be_nil
       end
     end
 
@@ -681,15 +705,15 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the relation to nil" do
-            game.person.should be_nil
+            expect(game.person).to be_nil
           end
 
           it "removed the inverse relation" do
-            person.game.should be_nil
+            expect(person.game).to be_nil
           end
 
           it "removes the foreign key value" do
-            game.person_id.should be_nil
+            expect(game.person_id).to be_nil
           end
         end
 
@@ -709,83 +733,24 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the relation to nil" do
-            game.person.should be_nil
+            expect(game.person).to be_nil
           end
 
           it "removed the inverse relation" do
-            person.game.should be_nil
+            expect(person.game).to be_nil
           end
 
           it "removes the foreign key value" do
-            game.person_id.should be_nil
+            expect(game.person_id).to be_nil
           end
 
           it "does not delete the child" do
-            game.should_not be_destroyed
+            expect(game).to_not be_destroyed
           end
         end
       end
 
       context "when the relation is polymorphic" do
-
-        context "when multiple relations against the same class exist" do
-
-          context "when the parent is a new record" do
-
-            let(:face) do
-              Face.new
-            end
-
-            let(:eye) do
-              Eye.new
-            end
-
-            before do
-              face.left_eye = eye
-              eye.eyeable = nil
-            end
-
-            it "sets the relation to nil" do
-              eye.eyeable.should be_nil
-            end
-
-            it "removed the inverse relation" do
-              face.left_eye.should be_nil
-            end
-
-            it "removes the foreign key value" do
-              eye.eyeable_id.should be_nil
-            end
-          end
-
-          context "when the parent is not a new record" do
-
-            let(:face) do
-              Face.new
-            end
-
-            let(:eye) do
-              Eye.create
-            end
-
-            before do
-              face.left_eye = eye
-              eye.eyeable = nil
-            end
-
-            it "sets the relation to nil" do
-              eye.eyeable.should be_nil
-            end
-
-            it "removed the inverse relation" do
-              face.left_eye.should be_nil
-            end
-
-            it "removes the foreign key value" do
-              eye.eyeable_id.should be_nil
-            end
-          end
-        end
 
         context "when one relation against the same class exists" do
 
@@ -805,15 +770,15 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "sets the relation to nil" do
-              rating.ratable.should be_nil
+              expect(rating.ratable).to be_nil
             end
 
             it "removed the inverse relation" do
-              bar.rating.should be_nil
+              expect(bar.rating).to be_nil
             end
 
             it "removes the foreign key value" do
-              rating.ratable_id.should be_nil
+              expect(rating.ratable_id).to be_nil
             end
           end
 
@@ -833,15 +798,15 @@ describe Mongoid::Relations::Referenced::In do
             end
 
             it "sets the relation to nil" do
-              rating.ratable.should be_nil
+              expect(rating.ratable).to be_nil
             end
 
             it "removed the inverse relation" do
-              bar.rating.should be_nil
+              expect(bar.rating).to be_nil
             end
 
             it "removes the foreign key value" do
-              rating.ratable_id.should be_nil
+              expect(rating.ratable_id).to be_nil
             end
           end
         end
@@ -868,15 +833,15 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the relation to nil" do
-            post.person.should be_nil
+            expect(post.person).to be_nil
           end
 
           it "removed the inverse relation" do
-            person.posts.should be_empty
+            expect(person.posts).to be_empty
           end
 
           it "removes the foreign key value" do
-            post.person_id.should be_nil
+            expect(post.person_id).to be_nil
           end
         end
 
@@ -896,15 +861,15 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the relation to nil" do
-            post.person.should be_nil
+            expect(post.person).to be_nil
           end
 
           it "removed the inverse relation" do
-            person.posts.should be_empty
+            expect(person.posts).to be_empty
           end
 
           it "removes the foreign key value" do
-            post.person_id.should be_nil
+            expect(post.person_id).to be_nil
           end
         end
       end
@@ -927,15 +892,15 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the relation to nil" do
-            rating.ratable.should be_nil
+            expect(rating.ratable).to be_nil
           end
 
           it "removed the inverse relation" do
-            movie.ratings.should be_empty
+            expect(movie.ratings).to be_empty
           end
 
           it "removes the foreign key value" do
-            rating.ratable_id.should be_nil
+            expect(rating.ratable_id).to be_nil
           end
         end
 
@@ -955,15 +920,15 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "sets the relation to nil" do
-            rating.ratable.should be_nil
+            expect(rating.ratable).to be_nil
           end
 
           it "removed the inverse relation" do
-            movie.ratings.should be_empty
+            expect(movie.ratings).to be_empty
           end
 
           it "removes the foreign key value" do
-            rating.ratable_id.should be_nil
+            expect(rating.ratable_id).to be_nil
           end
         end
       end
@@ -985,8 +950,9 @@ describe Mongoid::Relations::Referenced::In do
     end
 
     it "returns the embedded in builder" do
-      described_class.builder(nil, metadata, document).should
-        be_a_kind_of(builder_klass)
+      expect(
+        described_class.builder(nil, metadata, document)
+      ).to be_a_kind_of(builder_klass)
     end
   end
 
@@ -1023,7 +989,7 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "puts the document in the identity map" do
-        map.should eq(person)
+        expect(map).to eq(person)
       end
     end
 
@@ -1060,7 +1026,7 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "duplication should be removed" do
-        eager.count.should eq(1)
+        expect(eager.count).to eq(1)
       end
     end
   end
@@ -1068,21 +1034,21 @@ describe Mongoid::Relations::Referenced::In do
   describe ".embedded?" do
 
     it "returns false" do
-      described_class.should_not be_embedded
+      expect(described_class).to_not be_embedded
     end
   end
 
   describe ".foreign_key_suffix" do
 
     it "returns _id" do
-      described_class.foreign_key_suffix.should eq("_id")
+      expect(described_class.foreign_key_suffix).to eq("_id")
     end
   end
 
   describe ".macro" do
 
     it "returns belongs_to" do
-      described_class.macro.should eq(:belongs_to)
+      expect(described_class.macro).to eq(:belongs_to)
     end
   end
 
@@ -1105,7 +1071,7 @@ describe Mongoid::Relations::Referenced::In do
       context "when checking #{method}" do
 
         it "returns true" do
-          document.respond_to?(method).should be_true
+          expect(document.respond_to?(method)).to be_true
         end
       end
     end
@@ -1114,15 +1080,24 @@ describe Mongoid::Relations::Referenced::In do
   describe ".stores_foreign_key?" do
 
     it "returns true" do
-      described_class.stores_foreign_key?.should be_true
+      expect(described_class.stores_foreign_key?).to be_true
     end
   end
 
   describe ".valid_options" do
 
     it "returns the valid options" do
-      described_class.valid_options.should eq(
-        [ :autobuild, :autosave, :dependent, :foreign_key, :index, :polymorphic, :touch ]
+      expect(described_class.valid_options).to eq(
+        [
+          :autobuild,
+          :autosave,
+          :dependent,
+          :foreign_key,
+          :index,
+          :polymorphic,
+          :primary_key,
+          :touch
+        ]
       )
     end
   end
@@ -1130,7 +1105,7 @@ describe Mongoid::Relations::Referenced::In do
   describe ".validation_default" do
 
     it "returns false" do
-      described_class.validation_default.should be_false
+      expect(described_class.validation_default).to be_false
     end
   end
 
@@ -1151,11 +1126,11 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "sets the parent" do
-        game_one.parent.should eq(game_two)
+        expect(game_one.parent).to eq(game_two)
       end
 
       it "does not set the parent recursively" do
-        game_two.parent.should be_nil
+        expect(game_two.parent).to be_nil
       end
     end
   end
@@ -1217,7 +1192,7 @@ describe Mongoid::Relations::Referenced::In do
           end
 
           it "allows the reset of the has one" do
-            b.c.should eq(c)
+            expect(b.c).to eq(c)
           end
         end
       end
@@ -1244,19 +1219,19 @@ describe Mongoid::Relations::Referenced::In do
     end
 
     it "clones the relation" do
-      post.person.should eq(person)
+      expect(post.person).to eq(person)
     end
 
     it "sets the foreign key" do
-      post.person_id.should eq(person.id)
+      expect(post.person_id).to eq(person.id)
     end
 
     it "does not remove the previous relation" do
-      game.person.should eq(person)
+      expect(game.person).to eq(person)
     end
 
     it "does not remove the previous foreign key" do
-      game.person_id.should eq(person.id)
+      expect(game.person_id).to eq(person.id)
     end
 
     context "when reloading" do
@@ -1267,19 +1242,19 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "persists the relation" do
-        post.reload.person.should eq(person)
+        expect(post.reload.person).to eq(person)
       end
 
       it "persists the foreign key" do
-        post.reload.person_id.should eq(game.person_id)
+        expect(post.reload.person_id).to eq(game.person_id)
       end
 
       it "does not remove the previous relation" do
-        game.person.should eq(person)
+        expect(game.person).to eq(person)
       end
 
       it "does not remove the previous foreign key" do
-        game.person_id.should eq(person.id)
+        expect(game.person_id).to eq(person.id)
       end
     end
   end
@@ -1301,11 +1276,11 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "sets the correct has one" do
-        comment.account.should eq(account)
+        expect(comment.account).to eq(account)
       end
 
       it "sets the correct has many" do
-        comment.movie.should eq(movie)
+        expect(comment.movie).to eq(movie)
       end
     end
   end
@@ -1341,11 +1316,11 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "reloads the document from the database" do
-        reloaded.title.should eq("Madam")
+        expect(reloaded.title).to eq("Madam")
       end
 
       it "sets a new document instance" do
-        reloaded.should_not equal(person_one)
+        expect(reloaded).to_not equal(person_one)
       end
     end
 
@@ -1361,11 +1336,11 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "reloads the new document from the database" do
-        reloaded.title.should eq("Sir")
+        expect(reloaded.title).to eq("Sir")
       end
 
       it "sets a new document instance" do
-        reloaded.should_not equal(person_one)
+        expect(reloaded).to_not equal(person_one)
       end
     end
   end
@@ -1405,11 +1380,11 @@ describe Mongoid::Relations::Referenced::In do
         end
 
         it "does not append and save duplicate docs" do
-          Book.find(id).series.books.to_a.length.should eq(2)
+          expect(Book.find(id).series.books.to_a.length).to eq(2)
         end
 
         it "returns the same documents from the map" do
-          Book.find(id).should equal(Book.find(id))
+          expect(Book.find(id)).to equal(Book.find(id))
         end
       end
     end
@@ -1428,11 +1403,11 @@ describe Mongoid::Relations::Referenced::In do
     end
 
     it "allows strings to be passed as the id" do
-      cookie.jar.should eq(jar)
+      expect(cookie.jar).to eq(jar)
     end
 
     it "persists the relation" do
-      cookie.reload.jar.should eq(jar)
+      expect(cookie.reload.jar).to eq(jar)
     end
   end
 
@@ -1457,7 +1432,7 @@ describe Mongoid::Relations::Referenced::In do
       end
 
       it "sets the new document on the relation" do
-        game.person.should eq(person_two)
+        expect(game.person).to eq(person_two)
       end
     end
   end

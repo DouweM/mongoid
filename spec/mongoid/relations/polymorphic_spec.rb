@@ -32,6 +32,10 @@ describe Mongoid::Relations::Polymorphic do
           expect(klass.fields["ratable_type"]).to_not be_nil
         end
 
+        it "adds the foreign key inverse field field" do
+          expect(klass.fields["ratable_field"]).to_not be_nil
+        end
+
         it "returns self" do
           expect(polymorphed).to eq(klass)
         end
