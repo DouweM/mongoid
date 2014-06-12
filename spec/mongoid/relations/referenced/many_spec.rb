@@ -1837,7 +1837,8 @@ describe Mongoid::Relations::Referenced::Many do
         expect(criteria.selector).to eq(
           {
             "ratable_id"    => id,
-            "ratable_type"  => "Movie"
+            "ratable_type"  => "Movie",
+            "ratable_field" => { "$in" => [ :ratings, nil ] }
           }
         )
       end
