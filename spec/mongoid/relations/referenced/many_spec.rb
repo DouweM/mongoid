@@ -270,6 +270,10 @@ describe Mongoid::Relations::Referenced::Many do
             rating.ratable_field.should be_nil
           end
 
+          it "does not set the inverse field on the relation" do
+            expect(rating.ratable_field).to be_nil
+          end
+
           it "sets the base on the inverse relation" do
             rating.ratable.should eq(movie)
           end
@@ -303,6 +307,10 @@ describe Mongoid::Relations::Referenced::Many do
 
           it "does not set the inverse field on the relation" do
             rating.ratable_field.should be_nil
+          end
+
+          it "does not set the inverse field on the relation" do
+            expect(rating.ratable_field).to be_nil
           end
 
           it "sets the base on the inverse relation" do
