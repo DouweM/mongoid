@@ -169,11 +169,9 @@ module Mongoid
       #
       # @since 3.0.0
       def bind_inverse_of_field(doc, name)
-        if metadata.inverse_field_bindable?
-          if inverse_metadata = metadata.inverse_metadata(doc)
-            if setter = inverse_metadata.inverse_of_field_setter
-              doc.you_must(setter, name)
-            end
+        if inverse_metadata = metadata.inverse_metadata(doc)
+          if setter = inverse_metadata.inverse_of_field_setter
+            doc.you_must(setter, name)
           end
         end
       end
